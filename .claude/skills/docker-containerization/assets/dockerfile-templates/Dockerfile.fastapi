@@ -1,0 +1,30 @@
+# 1. Builder stage
+FROM python:3.9-slim as builder
+
+WORKDIR /app
+
+# Install poetry
+RUN pip install poetry
+
+# Copy only requirements to cache them
+COPY poetry.lock pyproject.toml ./
+
+# Install dependencies
+RUN poetry config virtualenvs.create false && poetry install --no-dev --no-interaction --no-ansi
+
+# 2. Production stage
+FROM python:3.9-slim as production
+
+WORKDIR /app
+
+# Copy installed dependencies from builder
+COPY --from=builder /app /app
+
+# Copy the application code
+COPY . /app
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

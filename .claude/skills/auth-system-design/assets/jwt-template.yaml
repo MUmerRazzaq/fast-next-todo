@@ -1,0 +1,172 @@
+# JWT Payload Schema Template
+
+This template defines the standard structure for JWT tokens following RFC 7519 and security best practices.
+
+## Standard Claims (Registered Claims)
+
+These claims are registered in the IANA "JSON Web Token Claims" registry:
+
+```yaml
+# Required claims (SHOULD be present)
+iss: "https://your-app.com"              # Issuer - who created and signed the token
+sub: "user-12345"                       # Subject - whom the token refers to
+aud: "https://your-app.com"             # Audience - who the token is intended for
+exp: 1640995200                         # Expiration time - Unix timestamp when token expires
+iat: 1640991600                         # Issued at - Unix timestamp when token was issued
+
+# Optional claims (MAY be present)
+nbf: 1640991600                         # Not before - Unix timestamp when token becomes valid
+jti: "unique-token-id-123"              # JWT ID - unique identifier for the token
+```
+
+## Custom Claims
+
+These claims are specific to your application:
+
+```yaml
+# User identification
+userId: "user-uuid-here"                # Internal user identifier
+username: "john_doe"                    # Username (optional)
+email: "john@example.com"               # User email (optional, consider privacy)
+
+# Role-based access control (RBAC)
+roles:                                  # Array of user roles
+  - "user"
+  - "admin"
+  - "moderator"
+permissions:                           # Array of specific permissions
+  - "read:profile"
+  - "write:posts"
+  - "delete:comments"
+
+# Additional metadata
+tenantId: "tenant-123"                  # For multi-tenant applications
+accountId: "account-456"                # For account-based systems
+profile:                               # Additional user profile data
+  firstName: "John"
+  lastName: "Doe"
+  avatar: "https://example.com/avatar.jpg"
+```
+
+## Complete JWT Payload Example
+
+```json
+{
+  "iss": "https://your-app.com",
+  "sub": "user-12345",
+  "aud": "https://your-app.com",
+  "exp": 1640995200,
+  "nbf": 1640991600,
+  "iat": 1640991600,
+  "jti": "unique-token-id-123",
+  "userId": "user-uuid-here",
+  "username": "john_doe",
+  "email": "john@example.com",
+  "roles": ["user", "admin"],
+  "permissions": [
+    "read:profile",
+    "write:posts",
+    "delete:comments"
+  ],
+  "tenantId": "tenant-123",
+  "accountId": "account-456",
+  "profile": {
+    "firstName": "John",
+    "lastName": "Doe",
+    "avatar": "https://example.com/avatar.jpg"
+  }
+}
+```
+
+## Security Considerations
+
+1. **Keep tokens small**: JWTs are sent with every request, so minimize payload size
+2. **Don't store sensitive data**: Avoid including sensitive information that could be exposed if the token is intercepted
+3. **Use short expiration times**: Limit the window of opportunity for token misuse
+4. **Validate all claims**: Always verify issuer, audience, expiration, and other claims
+5. **Sign properly**: Use strong algorithms (RS256, ES256) and proper key management
+
+## Implementation Guidelines
+
+### Python Implementation Example
+
+```python
+from typing import Dict, List, Optional, Union
+from datetime import datetime, timedelta
+from pydantic import BaseModel, Field, validator
+import jwt
+
+class JWTPayload(BaseModel):
+    # Standard claims
+    iss: str = Field(..., description="Issuer")
+    sub: str = Field(..., description="Subject")
+    aud: Union[str, List[str]] = Field(..., description="Audience")
+    exp: int = Field(..., description="Expiration time")
+    iat: int = Field(..., description="Issued at time")
+
+    # Optional standard claims
+    nbf: Optional[int] = Field(None, description="Not before time")
+    jti: Optional[str] = Field(None, description="JWT ID")
+
+    # Custom claims
+    userId: str = Field(..., description="User identifier")
+    roles: List[str] = Field(default_factory=list, description="User roles")
+    permissions: List[str] = Field(default_factory=list, description="User permissions")
+    tenantId: Optional[str] = Field(None, description="Tenant identifier")
+
+    @classmethod
+    def create_access_token(
+        cls,
+        user_id: str,
+        issuer: str,
+        audience: Union[str, List[str]],
+        roles: List[str] = None,
+        permissions: List[str] = None,
+        expires_delta: Optional[timedelta] = None
+    ) -> str:
+        """Create a JWT access token with proper validation."""
+        if expires_delta is None:
+            expires_delta = timedelta(minutes=15)  # Default 15 minutes
+
+        if roles is None:
+            roles = []
+        if permissions is None:
+            permissions = []
+
+        expire = datetime.utcnow() + expires_delta
+        now = datetime.utcnow()
+
+        payload = cls(
+            iss=issuer,
+            sub=user_id,
+            aud=audience,
+            exp=int(expire.timestamp()),
+            iat=int(now.timestamp()),
+            nbf=int(now.timestamp()),
+            jti=None,  # Generate unique ID if needed
+            userId=user_id,
+            roles=roles,
+            permissions=permissions
+        )
+
+        # Generate JWT token
+        token = jwt.encode(
+            payload.dict(),
+            key="your-secret-key",  # Use from environment
+            algorithm="RS256"  # Use RS256 for production
+        )
+
+        return token
+```
+
+## Validation Checklist
+
+- [ ] All required claims are present
+- [ ] Token expiration is validated
+- [ ] Issuer is verified against expected value
+- [ ] Audience is validated for multi-service scenarios
+- [ ] Not-before time is checked
+- [ ] JWT ID is unique (if using for blacklisting)
+- [ ] Custom claims are validated for expected values
+- [ ] Token size is reasonable (under 2KB recommended)
+- [ ] No sensitive data is included in payload

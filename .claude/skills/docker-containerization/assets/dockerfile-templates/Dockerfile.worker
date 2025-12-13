@@ -1,0 +1,27 @@
+# 1. Builder stage (if you have build steps for your worker)
+FROM python:3.9-slim as builder
+
+WORKDIR /app
+
+# Install poetry
+RUN pip install poetry
+
+# Copy only requirements to cache them
+COPY poetry.lock pyproject.toml ./
+
+# Install dependencies
+RUN poetry config virtualenvs.create false && poetry install --no-interaction --no-ansi
+
+# 2. Production stage
+FROM python:3.9-slim as production
+
+WORKDIR /app
+
+# Copy installed dependencies from builder
+COPY --from=builder /app /app
+
+# Copy the application code
+COPY . /app
+
+# Command to run the worker
+CMD ["python", "worker.py"]

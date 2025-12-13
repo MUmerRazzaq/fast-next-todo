@@ -1,0 +1,21 @@
+{
+  "color": {
+    "background": { "value": "hsl(var(--background))" },
+    "foreground": { "value": "hsl(var(--foreground))" },
+    "card": {
+      "DEFAULT": { "value": "hsl(var(--card))" },
+      "foreground": { "value": "hsl(var(--card-foreground))" }
+    },
+    "primary": {
+      "DEFAULT": { "value": "hsl(var(--primary))" },
+      "foreground": { "value": "hsl(var(--primary-foreground))" }
+    }
+  },
+  "size": {
+    "radius": {
+      "sm": { "value": "calc(var(--radius) - 4px)" },
+      "md": { "value": "calc(var(--radius) - 2px)" },
+      "lg": { "value": "var(--radius)" }
+    }
+  }
+}

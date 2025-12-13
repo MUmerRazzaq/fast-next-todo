@@ -1,0 +1,6 @@
+Deployment to main branch of ${{ github.repository }} was successful.
+
+Commit: ${{ github.sha }}
+Author: ${{ github.actor }}
+
+View changes: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
