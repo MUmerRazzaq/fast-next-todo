@@ -1,0 +1,66 @@
+# Docker Compose Production Reference Configuration
+# Copy to repository root as docker-compose.prod.yml during implementation
+# Purpose: Test production builds locally before Vercel deployment
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fastnexttodo-db-prod
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fastnexttodo
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: fastnexttodo-api-prod
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fastnexttodo
+      BETTER_AUTH_SECRET: local-dev-secret-minimum-32-characters-long
+      FRONTEND_URL: http://localhost:3000
+      DEBUG: "false"
+      ENVIRONMENT: production
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # No volume mounts - uses built image only
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: fastnexttodo-web-prod
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    # No volume mounts - uses built image only
+    networks:
+      - app-network
+
+volumes:
+  postgres_data_prod:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge

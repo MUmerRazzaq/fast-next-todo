@@ -1,0 +1,25 @@
+# Frontend Dockerfile Reference (Development)
+# Copy to frontend/Dockerfile during implementation
+
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Set environment variables
+ENV NODE_ENV=development
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci
+
+# Copy application code
+COPY . .
+
+# Expose port
+EXPOSE 3000
+
+# Default command (overridden by docker-compose for development)
+CMD ["npm", "run", "dev"]

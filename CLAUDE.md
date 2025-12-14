@@ -208,3 +208,9 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+## Active Technologies
+- Neon Serverless PostgreSQL (accessed via SQLModel/SQLAlchemy with connection pooling) (001-task-management)
+
+## Recent Changes
+- 001-task-management: Added Neon Serverless PostgreSQL (accessed via SQLModel/SQLAlchemy with connection pooling)

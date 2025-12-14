@@ -1,0 +1,913 @@
+openapi: 3.1.0
+info:
+  title: Fast Next Todo API
+  description: |
+    REST API for the Intelligent Multi-User Task Management application.
+    All endpoints require JWT authentication via Bearer token.
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development
+  - url: https://api.fastnexttodo.com/api/v1
+    description: Production
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Health
+    description: Health check endpoints
+  - name: Tasks
+    description: Task management operations
+  - name: Tags
+    description: Tag management operations
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns API health status
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: API is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: List tasks
+      description: |
+        Returns a paginated list of the authenticated user's tasks.
+        Supports filtering by status, priority, tags, and due date range.
+        Supports sorting by various fields.
+      operationId: listTasks
+      parameters:
+        - name: status
+          in: query
+          description: Filter by completion status
+          schema:
+            type: string
+            enum: [completed, active]
+        - name: priority
+          in: query
+          description: Filter by priority level
+          schema:
+            $ref: '#/components/schemas/Priority'
+        - name: tag
+          in: query
+          description: Filter by tag ID
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          description: Search in title and description
+          schema:
+            type: string
+            maxLength: 100
+        - name: due_from
+          in: query
+          description: Filter tasks due on or after this date
+          schema:
+            type: string
+            format: date-time
+        - name: due_to
+          in: query
+          description: Filter tasks due on or before this date
+          schema:
+            type: string
+            format: date-time
+        - name: include_deleted
+          in: query
+          description: Include soft-deleted tasks (default false)
+          schema:
+            type: boolean
+            default: false
+        - name: sort_by
+          in: query
+          description: Field to sort by
+          schema:
+            type: string
+            enum: [created_at, due_date, priority, title]
+            default: created_at
+        - name: sort_order
+          in: query
+          description: Sort direction
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: page_size
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+      responses:
+        '200':
+          description: Paginated list of tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Tasks
+      summary: Create task
+      description: Creates a new task for the authenticated user
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tasks/{task_id}:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        description: Task unique identifier
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Tasks
+      summary: Get task
+      description: Returns a specific task by ID
+      operationId: getTask
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Tasks
+      summary: Update task
+      description: Updates a specific task. Only provided fields are updated.
+      operationId: updateTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags:
+        - Tasks
+      summary: Delete task (soft delete)
+      description: |
+        Soft deletes a task. The task remains in the database but is marked as deleted.
+        Sets is_deleted=true, deleted_at=now, deleted_by=user_id.
+      operationId: deleteTask
+      responses:
+        '204':
+          description: Task deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/{task_id}/complete:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        description: Task unique identifier
+        schema:
+          type: string
+          format: uuid
+
+    post:
+      tags:
+        - Tasks
+      summary: Mark task as complete
+      description: |
+        Marks a task as completed. If the task has a recurrence rule,
+        a new task is automatically created with the next due date.
+      operationId: completeTask
+      responses:
+        '200':
+          description: Task completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompleteTaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/{task_id}/uncomplete:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        description: Task unique identifier
+        schema:
+          type: string
+          format: uuid
+
+    post:
+      tags:
+        - Tasks
+      summary: Mark task as incomplete
+      description: Marks a completed task as incomplete (active)
+      operationId: uncompleteTask
+      responses:
+        '200':
+          description: Task marked as incomplete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tasks/export:
+    get:
+      tags:
+        - Tasks
+      summary: Export tasks
+      description: |
+        Export all user tasks in CSV or JSON format.
+        Streams data for large datasets.
+      operationId: exportTasks
+      parameters:
+        - name: format
+          in: query
+          description: Export format
+          schema:
+            type: string
+            enum: [csv, json]
+            default: csv
+      responses:
+        '200':
+          description: Task export file
+          content:
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskResponse'
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: 'attachment; filename=tasks.csv'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /tasks/{task_id}/audit:
+    parameters:
+      - name: task_id
+        in: path
+        required: true
+        description: Task unique identifier
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Tasks
+      summary: Get task audit history
+      description: Returns the audit log entries for a specific task
+      operationId: getTaskAudit
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+      responses:
+        '200':
+          description: Audit log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLogListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /tags:
+    get:
+      tags:
+        - Tags
+      summary: List tags
+      description: Returns all tags for the authenticated user
+      operationId: listTags
+      responses:
+        '200':
+          description: List of tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags:
+        - Tags
+      summary: Create tag
+      description: Creates a new tag for the authenticated user
+      operationId: createTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagCreate'
+      responses:
+        '201':
+          description: Tag created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Tag with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tags/{tag_id}:
+    parameters:
+      - name: tag_id
+        in: path
+        required: true
+        description: Tag unique identifier
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags:
+        - Tags
+      summary: Get tag
+      description: Returns a specific tag by ID
+      operationId: getTag
+      responses:
+        '200':
+          description: Tag details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    patch:
+      tags:
+        - Tags
+      summary: Update tag
+      description: Updates a tag's name
+      operationId: updateTag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TagUpdate'
+      responses:
+        '200':
+          description: Tag updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Tag with this name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Tags
+      summary: Delete tag
+      description: |
+        Deletes a tag. This removes the tag from all associated tasks
+        but does not affect the tasks themselves.
+      operationId: deleteTag
+      responses:
+        '204':
+          description: Tag deleted successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from Better Auth
+
+  schemas:
+    Priority:
+      type: string
+      enum: [low, medium, high]
+      description: Task priority level
+
+    Recurrence:
+      type: string
+      enum: [none, daily, weekly, monthly]
+      description: Task recurrence rule
+
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Task title
+        description:
+          type: string
+          maxLength: 2000
+          description: Task description
+        priority:
+          $ref: '#/components/schemas/Priority'
+          default: medium
+        due_date:
+          type: string
+          format: date-time
+          description: Task due date and time
+        recurrence:
+          $ref: '#/components/schemas/Recurrence'
+          default: none
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 10
+          description: List of tag IDs to associate with the task
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          $ref: '#/components/schemas/Priority'
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        recurrence:
+          $ref: '#/components/schemas/Recurrence'
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          maxItems: 10
+
+    TaskResponse:
+      type: object
+      required:
+        - id
+        - user_id
+        - title
+        - priority
+        - recurrence
+        - is_completed
+        - is_deleted
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        priority:
+          $ref: '#/components/schemas/Priority'
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+        recurrence:
+          $ref: '#/components/schemas/Recurrence'
+        is_completed:
+          type: boolean
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_deleted:
+          type: boolean
+        deleted_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+        is_overdue:
+          type: boolean
+          description: True if due_date has passed and task is not completed
+
+    TaskListResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - page_size
+        - pages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskResponse'
+        total:
+          type: integer
+          description: Total number of tasks matching filters
+        page:
+          type: integer
+          description: Current page number
+        page_size:
+          type: integer
+          description: Items per page
+        pages:
+          type: integer
+          description: Total number of pages
+
+    CompleteTaskResponse:
+      type: object
+      required:
+        - task
+      properties:
+        task:
+          $ref: '#/components/schemas/TaskResponse'
+          description: The completed task
+        next_task:
+          $ref: '#/components/schemas/TaskResponse'
+          description: |
+            The newly created task for the next recurrence.
+            Only present if the completed task has a recurrence rule.
+
+    TagCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Tag name (must be unique per user)
+
+    TagUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+
+    TagResponse:
+      type: object
+      required:
+        - id
+        - user_id
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    TagListResponse:
+      type: object
+      required:
+        - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagResponse'
+
+    AuditLogEntry:
+      type: object
+      required:
+        - id
+        - entity_type
+        - entity_id
+        - user_id
+        - action_type
+        - timestamp
+        - is_system_action
+      properties:
+        id:
+          type: string
+          format: uuid
+        entity_type:
+          type: string
+        entity_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        action_type:
+          type: string
+          enum: [create, update, complete, uncomplete, delete, recurring_auto_create]
+        field_changed:
+          type: string
+          nullable: true
+        old_value:
+          type: string
+          nullable: true
+        new_value:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        is_system_action:
+          type: boolean
+
+    AuditLogListResponse:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - page_size
+        - pages
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogEntry'
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        pages:
+          type: integer
+
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy]
+        timestamp:
+          type: string
+          format: date-time
+        version:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+
+    ValidationErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+        - details
+      properties:
+        error:
+          type: string
+          example: validation_error
+        message:
+          type: string
+          example: Request validation failed
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: unauthorized
+            message: Invalid or expired authentication token
+
+    Forbidden:
+      description: User does not have permission to access this resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: forbidden
+            message: You do not have permission to access this resource
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: not_found
+            message: The requested resource was not found
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationErrorResponse'
+
+    RateLimited:
+      description: Too many requests
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+            description: Seconds to wait before retrying
+            example: 60
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+            description: Request limit per minute
+            example: 100
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+            description: Remaining requests in current window
+            example: 0
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: rate_limited
+            message: Too many requests. Please wait before trying again.
