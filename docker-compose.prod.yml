@@ -1,0 +1,103 @@
+# Docker Compose for Production-like Testing
+# Uses production builds and simulates production environment
+#
+# Usage:
+#   docker-compose -f docker-compose.prod.yml up -d --build    # Build and start
+#   docker-compose -f docker-compose.prod.yml logs -f          # Follow logs
+#   docker-compose -f docker-compose.prod.yml down             # Stop services
+#   docker-compose -f docker-compose.prod.yml down -v          # Stop and remove volumes
+#
+# Environment:
+#   Create a .env.prod file with production-like secrets before running
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fastnexttodo-prod-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-fastnexttodo}
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with dev
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - prod-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: fastnexttodo-prod-api
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-fastnexttodo}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-production-secret-change-this-in-production}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+      DEBUG: "false"
+      ENVIRONMENT: production
+    ports:
+      - "8001:8000"  # Different port to avoid conflict with dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: production
+    container_name: fastnexttodo-prod-web
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8001/api/v1}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-production-secret-change-this-in-production}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3001}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-fastnexttodo}
+      NODE_ENV: production
+    ports:
+      - "3001:3000"  # Different port to avoid conflict with dev
+    depends_on:
+      - backend
+    networks:
+      - prod-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  postgres_prod_data:
+    driver: local
+
+networks:
+  prod-network:
+    driver: bridge
