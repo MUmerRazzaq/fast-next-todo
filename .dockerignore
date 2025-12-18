@@ -1,0 +1,75 @@
+# =============================================================================
+# Fast Next Todo - Docker Ignore Configuration
+# =============================================================================
+
+# Git
+.git
+.gitignore
+
+# Documentation and specs
+*.md
+!README.md
+docs/
+specs/
+history/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+.tox/
+
+# Node
+node_modules/
+npm-debug.log*
+.next/
+out/
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Build artifacts
+dist/
+build/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.docker/
+
+# Environment files (never include in images)
+.env*
+*.local
+
+# Misc
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Claude Code
+.claude/
+
+# Specify framework
+.specify/
