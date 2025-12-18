@@ -34,6 +34,9 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy application code
 COPY --chown=appuser:appgroup . .
 
+# Ensure alembic can write migration lock files
+RUN chown -R appuser:appgroup /app
+
 # Switch to non-root user
 USER appuser
 

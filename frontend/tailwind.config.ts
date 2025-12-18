@@ -6,7 +6,8 @@ const config: Config = {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./node_modules/@daveyplate/better-auth-ui/dist/**/*.{js,ts,jsx,tsx,mdx}",
+    // Better Auth UI components - only scan component files for Tailwind classes
+    "./node_modules/@daveyplate/better-auth-ui/dist/components/**/*.js",
   ],
   theme: {
     extend: {

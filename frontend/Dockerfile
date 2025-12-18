@@ -6,6 +6,9 @@ FROM node:22-alpine AS deps
 
 WORKDIR /app
 
+# Install native dependencies for pg module (required by Better Auth)
+RUN apk add --no-cache python3 make g++ postgresql-dev
+
 # Copy package files
 COPY package*.json ./
 
@@ -16,6 +19,9 @@ RUN npm install
 FROM node:22-alpine AS development
 
 WORKDIR /app
+
+# Install runtime dependencies for pg module
+RUN apk add --no-cache libpq
 
 # Set environment variables
 ENV NODE_ENV=development
@@ -42,6 +48,9 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Install runtime dependencies for pg module
+RUN apk add --no-cache libpq
+
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
@@ -57,6 +66,9 @@ RUN npm run build
 FROM node:22-alpine AS production
 
 WORKDIR /app
+
+# Install runtime dependencies for pg module
+RUN apk add --no-cache libpq
 
 # Set environment variables
 ENV NODE_ENV=production

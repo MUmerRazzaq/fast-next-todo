@@ -8,7 +8,7 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
 
     // Redirect authenticated users away from auth pages
-    if (session && (pathname === "/auth/signin" || pathname === "/auth/sign-up")) {
+    if (session && (pathname === "/auth/sign-in" || pathname === "/auth/sign-up")) {
       return NextResponse.redirect(new URL("/tasks", request.url));
     }
 
@@ -18,7 +18,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirect unauthenticated users to signin
     if (!session && isProtectedRoute) {
-      const signinUrl = new URL("/auth/signin", request.url);
+      const signinUrl = new URL("/auth/sign-in", request.url);
       signinUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(signinUrl);
     }

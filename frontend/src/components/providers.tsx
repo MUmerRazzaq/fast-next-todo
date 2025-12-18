@@ -26,6 +26,7 @@ export function Providers({ children }: ProvidersProps) {
       replace={router.replace}
       onSessionChange={() => router.refresh()}
       Link={Link}
+      localizeErrors={false}
     >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="system" storageKey="fast-next-todo-theme">

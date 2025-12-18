@@ -20,25 +20,28 @@ export const taskKeys = {
  * Serializes tagIds array to comma-separated string.
  */
 function serializeParams(params: TaskListParams): Record<string, string | number | boolean | undefined> {
-  const { tagIds, ...rest } = params;
+  const {
+    tagIds,
+    pageSize,
+    isCompleted,
+    sortBy,
+    sortOrder,
+    dueFrom,
+    dueTo,
+    ...rest
+  } = params;
+
   return {
     ...rest,
     // Convert tagIds array to comma-separated string for API
     tag_ids: tagIds?.length ? tagIds.join(",") : undefined,
     // Convert camelCase to snake_case for API
-    page_size: rest.pageSize,
-    is_completed: rest.isCompleted,
-    sort_by: rest.sortBy,
-    sort_order: rest.sortOrder,
-    due_from: rest.dueFrom,
-    due_to: rest.dueTo,
-    // Remove camelCase versions
-    pageSize: undefined,
-    isCompleted: undefined,
-    sortBy: undefined,
-    sortOrder: undefined,
-    dueFrom: undefined,
-    dueTo: undefined,
+    page_size: pageSize,
+    is_completed: isCompleted,
+    sort_by: sortBy,
+    sort_order: sortOrder,
+    due_from: dueFrom,
+    due_to: dueTo,
   };
 }
 

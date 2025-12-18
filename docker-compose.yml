@@ -46,15 +46,16 @@ services:
     volumes:
       - ./backend:/app
       - /app/.venv  # Exclude virtual environment from sync
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    # Run Alembic migrations then start uvicorn
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      test: ["CMD", "python", "-c", "import httpx; r = httpx.get('http://localhost:8000/api/v1/health', timeout=5.0); exit(0 if r.status_code == 200 else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 15s
 
   frontend:
     build:
@@ -66,16 +67,19 @@ services:
         API_URL_INTERNAL: http://backend:8000/api/v1
     container_name: fastnexttodo-web
     environment:
-      # These are now set via build args in the Dockerfile for consistency
-      # NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
-      # API_URL_INTERNAL: http://backend:8000/api/v1
+      # Runtime environment variables
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+      API_URL_INTERNAL: http://backend:8000/api/v1
       BETTER_AUTH_SECRET: local-dev-secret-minimum-32-characters-long
-      AUTH_BASE_URL: http://localhost:3000
+      BETTER_AUTH_URL: http://localhost:3000
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/fastnexttodo
     ports:
       - "3000:3000"
     depends_on:
-      - backend
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
     volumes:
       - ./frontend:/app
       - /app/node_modules  # Exclude node_modules from sync

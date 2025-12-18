@@ -124,7 +124,7 @@ export function useAuth(): UseAuthReturn {
   const logout = useCallback(async () => {
     clearAuthToken(); // Clear cached JWT token
     await signOut();
-    router.push("/auth/signin");
+    router.push("/auth/sign-in");
     router.refresh();
   }, [router]);
 

@@ -23,7 +23,7 @@ export default function HomePage() {
           Get Started
         </Link>
         <Link
-          href="/auth/signin"
+          href="/auth/sign-in"
           className="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-base font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
         >
           Sign In

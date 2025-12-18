@@ -21,7 +21,7 @@ export function ExportButton({ className }: ExportButtonProps) {
 
     try {
       const response = await fetch(
-        `${config.apiUrl}/tasks/export/download?format=${format}`,
+        `${config.apiUrl}/tasks/export?format=${format}`,
         { credentials: "include" }
       );
 

@@ -124,12 +124,13 @@ function buildUrl(
   endpoint: string,
   params?: Record<string, string | number | boolean | undefined>
 ): string {
-  // Correctly join the base URL and the endpoint.
-  const urlPath = `${config.apiUrl.replace(/\/$/, "")}/${endpoint.replace(
-    /^\//,
-    ""
-  )}`;
-  const url = new URL(urlPath);
+  // Ensure base URL ends with / for proper URL resolution
+  const baseUrl = config.apiUrl.endsWith("/")
+    ? config.apiUrl
+    : `${config.apiUrl}/`;
+  // Remove leading slash from endpoint to avoid double slashes
+  const cleanEndpoint = endpoint.replace(/^\//, "");
+  const url = new URL(cleanEndpoint, baseUrl);
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
