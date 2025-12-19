@@ -1,8 +1,9 @@
 "use client";
 
+import { getAuthToken } from "@/lib/api-client";
+import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
 import { config } from "@/lib/config";
-import { useToast } from "@/components/ui/toast";
 
 type ExportFormat = "csv" | "json";
 
@@ -13,20 +14,42 @@ interface ExportButtonProps {
 export function ExportButton({ className }: ExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const handleExport = async (format: ExportFormat) => {
     setIsExporting(true);
     setShowDropdown(false);
 
+    const token = await getAuthToken();
+    if (!token) {
+      toast({
+        title: "Authentication Error",
+        description: "Please sign in again.",
+        variant: "destructive",
+      });
+      setIsExporting(false);
+      return;
+    }
+
     try {
       const response = await fetch(
         `${config.apiUrl}/tasks/export?format=${format}`,
-        { credentials: "include" }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
-        throw new Error("Export failed");
+        let errorMessage = `Export failed with status: ${response.status}`;
+        try {
+          const errorBody = await response.json();
+          errorMessage = errorBody.detail || errorMessage;
+        } catch {
+          // Ignore if response is not JSON
+        }
+        throw new Error(errorMessage);
       }
 
       // Create download link
@@ -40,9 +63,18 @@ export function ExportButton({ className }: ExportButtonProps) {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      addToast(`Tasks exported to ${format.toUpperCase()}`, "success");
-    } catch {
-      addToast("Failed to export tasks", "error");
+      toast({
+        title: "Export Successful",
+        description: `Tasks exported to ${format.toUpperCase()}`,
+      });
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "An unknown error occurred";
+      toast({
+        title: "Export Failed",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsExporting(false);
     }

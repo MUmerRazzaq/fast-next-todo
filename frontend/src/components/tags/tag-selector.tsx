@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTags, useCreateTag } from "@/hooks/use-tags";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 interface TagSelectorProps {
   selectedTagIds: string[];
@@ -26,16 +26,16 @@ export function TagSelector({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [isCreating, setIsCreating] = useState(false);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const { tags, isLoading } = useTags({ search: search || undefined });
   const { createTag } = useCreateTag({
     onSuccess: () => {
       setSearch("");
       setIsCreating(false);
-      addToast("Tag created!", "success");
+      toast({ title: "Tag created!" });
     },
-    onError: () => addToast("Failed to create tag", "error"),
+    onError: () => toast({ title: "Failed to create tag", variant: "destructive" }),
   });
 
   const selectedTags = tags.filter((tag) => selectedTagIds.includes(tag.id));
@@ -58,7 +58,7 @@ export function TagSelector({
       (tag) => tag.name.toLowerCase() === trimmedSearch.toLowerCase()
     );
     if (exists) {
-      addToast("Tag already exists", "error");
+      toast({ title: "Tag already exists", variant: "destructive" });
       return;
     }
 

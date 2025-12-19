@@ -20,7 +20,7 @@ let tokenExpiry: number | null = null;
  * Get JWT token for API requests.
  * Caches the token and refreshes when expired.
  */
-async function getAuthToken(): Promise<string | null> {
+export async function getAuthToken(): Promise<string | null> {
   // Check if cached token is still valid (with 5 min buffer)
   if (cachedToken && tokenExpiry && Date.now() < tokenExpiry - 5 * 60 * 1000) {
     return cachedToken;

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCompleteTask, useUncompleteTask, useDeleteTask } from "@/hooks/use-task-mutations";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { EditTaskDialog } from "./edit-task-dialog";
 import { DeleteTaskDialog } from "./delete-task-dialog";
 import { TaskAuditDialog } from "./task-audit-dialog";
@@ -20,19 +20,19 @@ export function TaskCard({ task }: TaskCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAuditDialog, setShowAuditDialog] = useState(false);
   const [showActions, setShowActions] = useState(false);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const { completeTask, isCompleting } = useCompleteTask({
-    onSuccess: () => addToast("Task completed!", "success"),
-    onError: () => addToast("Failed to complete task", "error"),
+    onSuccess: () => toast({ title: "Task completed!" }),
+    onError: () => toast({ title: "Failed to complete task", variant: "destructive" }),
   });
   const { uncompleteTask, isUncompleting } = useUncompleteTask({
-    onSuccess: () => addToast("Task marked incomplete", "info"),
-    onError: () => addToast("Failed to update task", "error"),
+    onSuccess: () => toast({ title: "Task marked incomplete" }),
+    onError: () => toast({ title: "Failed to update task", variant: "destructive" }),
   });
   const { deleteTask, isDeleting } = useDeleteTask({
-    onSuccess: () => addToast("Task deleted", "success"),
-    onError: () => addToast("Failed to delete task", "error"),
+    onSuccess: () => toast({ title: "Task deleted" }),
+    onError: () => toast({ title: "Failed to delete task", variant: "destructive" }),
   });
 
   const isLoading = isCompleting || isUncompleting || isDeleting;
@@ -54,7 +54,7 @@ export function TaskCard({ task }: TaskCardProps) {
   return (
     <>
       <div
-        className={`group relative rounded-lg border bg-card p-4 transition-all hover:shadow-sm ${
+        className={`group relative rounded-lg border bg-card p-4 transition-all hover:shadow-sm focus-within:shadow-sm ${
           task.isCompleted ? "opacity-60" : ""
         } ${overdue ? "border-destructive/50" : ""}`}
       >
@@ -63,11 +63,11 @@ export function TaskCard({ task }: TaskCardProps) {
           <button
             onClick={handleToggleComplete}
             disabled={isLoading}
-            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+            className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 outline-none transition-colors ${
               task.isCompleted
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-muted-foreground hover:border-primary"
-            } disabled:cursor-not-allowed disabled:opacity-50`}
+            } disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2`}
             aria-label={task.isCompleted ? "Mark as incomplete" : "Mark as complete"}
           >
             {task.isCompleted && (
@@ -151,7 +151,7 @@ export function TaskCard({ task }: TaskCardProps) {
           <div className="relative">
             <button
               onClick={() => setShowActions(!showActions)}
-              className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-muted group-hover:opacity-100"
+              className="rounded p-1 text-muted-foreground opacity-0 outline-none transition-opacity hover:bg-muted group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Task actions"
             >
               <svg

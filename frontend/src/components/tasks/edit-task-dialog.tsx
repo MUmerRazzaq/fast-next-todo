@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useUpdateTask } from "@/hooks/use-task-mutations";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tags/tag-selector";
 import type { Task, Priority, Recurrence } from "@/types/api";
 
@@ -21,14 +21,14 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
   );
   const [recurrence, setRecurrence] = useState<Recurrence>(task.recurrence);
   const [tagIds, setTagIds] = useState<string[]>(task.tags.map((t) => t.id));
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const { updateTask, isUpdating } = useUpdateTask({
     onSuccess: () => {
-      addToast("Task updated!", "success");
+      toast({ title: "Task updated!" });
       onOpenChange(false);
     },
-    onError: () => addToast("Failed to update task", "error"),
+    onError: () => toast({ title: "Failed to update task", variant: "destructive" }),
   });
 
   // Reset form when task changes
