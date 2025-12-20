@@ -5,7 +5,7 @@
   "outputDirectory": "frontend/.next",
   "installCommand": "cd frontend && npm install",
   "functions": {
-    "backend/app/**/*.py": {
+    "backend/app/main.py": {
       "memory": 1024,
       "maxDuration": 30
     }
