@@ -6,7 +6,7 @@
   "installCommand": "cd frontend && npm install",
   "functions": {
     "backend/app/main.py": {
-      "runtime": "vercel-python@3.13",
+      "runtime": "vercel-python@3.12",
       "maxDuration": 30
     }
   },

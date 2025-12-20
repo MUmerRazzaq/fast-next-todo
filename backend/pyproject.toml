@@ -9,7 +9,7 @@ packages = ["app"]
 name = "fast-next-todo-backend"
 version = "1.0.0"
 description = "Backend API for Fast Next Todo - Intelligent Multi-User Task Management"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 authors = [
     {name = "Fast Next Todo Team"}
