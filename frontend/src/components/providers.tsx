@@ -11,6 +11,12 @@ import Link from "next/link";
 
 export const authClient = createAuthClient();
 
+/**
+ * Hook to access the current session.
+ * Must be used within the Providers tree.
+ */
+export const useSession = authClient.useSession;
+
 interface ProvidersProps {
   children: React.ReactNode;
 }
@@ -26,6 +32,11 @@ export function Providers({ children }: ProvidersProps) {
       replace={router.replace}
       onSessionChange={() => router.refresh()}
       Link={Link}
+      account={{
+        viewPaths: {
+          SETTINGS: "/account/settings",
+        },
+      }}
       localizeErrors={false}
     >
       <QueryClientProvider client={queryClient}>

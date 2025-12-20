@@ -20,7 +20,7 @@ let tokenExpiry: number | null = null;
  * Get JWT token for API requests.
  * Caches the token and refreshes when expired.
  */
-async function getAuthToken(): Promise<string | null> {
+export async function getAuthToken(): Promise<string | null> {
   // Check if cached token is still valid (with 5 min buffer)
   if (cachedToken && tokenExpiry && Date.now() < tokenExpiry - 5 * 60 * 1000) {
     return cachedToken;
@@ -57,6 +57,29 @@ async function getAuthToken(): Promise<string | null> {
 export function clearAuthToken(): void {
   cachedToken = null;
   tokenExpiry = null;
+}
+
+function toCamel(s: string): string {
+  return s.replace(/([-_][a-z])/ig, ($1) => {
+    return $1.toUpperCase()
+      .replace('-', '')
+      .replace('_', '');
+  });
+}
+
+function transformKeysToCamelCase(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(v => transformKeysToCamelCase(v));
+  } else if (obj && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof Date)) {
+    return Object.keys(obj).reduce(
+      (result, key) => ({
+        ...result,
+        [toCamel(key)]: transformKeysToCamelCase(obj[key]),
+      }),
+      {}
+    );
+  }
+  return obj;
 }
 
 /**
@@ -199,7 +222,8 @@ async function request<T>(
       return undefined as T;
     }
 
-    return (await response.json()) as T;
+    const data = await response.json();
+    return transformKeysToCamelCase(data) as T;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw parseError(new Error("Request timeout"), 408);

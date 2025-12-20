@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTags, useCreateTag, useUpdateTag, useDeleteTag } from "@/hooks/use-tags";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import type { Tag } from "@/types/api";
 
 interface TagManagerProps {
@@ -24,33 +24,33 @@ export function TagManager({ open, onOpenChange }: TagManagerProps) {
   const [editingTag, setEditingTag] = useState<Tag | null>(null);
   const [editName, setEditName] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const { tags, isLoading } = useTags({ pageSize: 100 });
 
   const { createTag, isCreating } = useCreateTag({
     onSuccess: () => {
       setNewTagName("");
-      addToast("Tag created!", "success");
+      toast({ title: "Tag created!" });
     },
-    onError: () => addToast("Failed to create tag", "error"),
+    onError: () => toast({ title: "Failed to create tag", variant: "destructive" }),
   });
 
   const { updateTag, isUpdating } = useUpdateTag({
     onSuccess: () => {
       setEditingTag(null);
       setEditName("");
-      addToast("Tag updated!", "success");
+      toast({ title: "Tag updated!" });
     },
-    onError: () => addToast("Failed to update tag", "error"),
+    onError: () => toast({ title: "Failed to update tag", variant: "destructive" }),
   });
 
   const { deleteTag, isDeleting } = useDeleteTag({
     onSuccess: () => {
       setDeleteConfirm(null);
-      addToast("Tag deleted!", "success");
+      toast({ title: "Tag deleted!" });
     },
-    onError: () => addToast("Failed to delete tag", "error"),
+    onError: () => toast({ title: "Failed to delete tag", variant: "destructive" }),
   });
 
   const handleCreate = (e: React.FormEvent) => {
@@ -60,7 +60,7 @@ export function TagManager({ open, onOpenChange }: TagManagerProps) {
 
     // Check for duplicates
     if (tags.some((tag) => tag.name.toLowerCase() === trimmed.toLowerCase())) {
-      addToast("Tag already exists", "error");
+      toast({ title: "Tag already exists", variant: "destructive" });
       return;
     }
 
@@ -88,7 +88,7 @@ export function TagManager({ open, onOpenChange }: TagManagerProps) {
           tag.name.toLowerCase() === trimmed.toLowerCase()
       )
     ) {
-      addToast("Tag already exists", "error");
+      toast({ title: "Tag already exists", variant: "destructive" });
       return;
     }
 

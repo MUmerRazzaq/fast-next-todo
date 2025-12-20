@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCreateTask } from "@/hooks/use-task-mutations";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 import { TagSelector } from "@/components/tags/tag-selector";
 import type { Priority, Recurrence } from "@/types/api";
 
@@ -18,15 +18,15 @@ export function CreateTaskDialog({ open, onOpenChange }: CreateTaskDialogProps) 
   const [dueDate, setDueDate] = useState("");
   const [recurrence, setRecurrence] = useState<Recurrence>("none");
   const [tagIds, setTagIds] = useState<string[]>([]);
-  const { addToast } = useToast();
+  const { toast } = useToast();
 
   const { createTask, isCreating } = useCreateTask({
     onSuccess: () => {
-      addToast("Task created!", "success");
+      toast({ title: "Task created!" });
       onOpenChange(false);
       resetForm();
     },
-    onError: () => addToast("Failed to create task", "error"),
+    onError: () => toast({ title: "Failed to create task", variant: "destructive" }),
   });
 
   const resetForm = () => {

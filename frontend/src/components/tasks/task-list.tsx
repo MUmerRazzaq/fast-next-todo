@@ -5,45 +5,48 @@ import type { Task } from "@/types/api";
 
 interface TaskListProps {
   tasks: Task[];
+  selectedTaskIndex: number | null;
+  onEdit: (task: Task) => void;
+  onDelete: (task: Task) => void;
 }
 
-export function TaskList({ tasks }: TaskListProps) {
-  if (tasks.length === 0) {
-    return null;
+export function TaskList({ tasks, selectedTaskIndex, onEdit, onDelete }: TaskListProps) {
+  const selectedTaskId = selectedTaskIndex !== null ? tasks[selectedTaskIndex]?.id : null;
+  const activeTasks = tasks.filter((t) => !t.isCompleted);
+  const completedTasks = tasks.filter((t) => t.isCompleted);
+
+  if (activeTasks.length === 0 && completedTasks.length === 0) {
+      return null;
   }
 
-  // Separate completed and incomplete tasks
-  const incompleteTasks = tasks.filter((task) => !task.isCompleted);
-  const completedTasks = tasks.filter((task) => task.isCompleted);
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Active Tasks */}
-      {incompleteTasks.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">
-            Active ({incompleteTasks.length})
+      {activeTasks.length > 0 && (
+        <section>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">
+            Active
           </h3>
-          <div className="space-y-2">
-            {incompleteTasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
+          <div className="space-y-3">
+            {activeTasks.map((task) => (
+              <TaskCard key={task.id} task={task} isSelected={task.id === selectedTaskId} onEdit={onEdit} onDelete={onDelete} />
             ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Completed Tasks */}
       {completedTasks.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">
+        <section>
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">
             Completed ({completedTasks.length})
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3 opacity-70">
             {completedTasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard key={task.id} task={task} isSelected={task.id === selectedTaskId} onEdit={onEdit} onDelete={onDelete} />
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   );
