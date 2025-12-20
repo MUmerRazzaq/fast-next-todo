@@ -53,7 +53,9 @@ function CreateTagForm() {
       setName("");
     },
     onError: (error) => {
-      if (error.message.includes("409")) {
+      const anyError = error as any;
+      const status = anyError?.status ?? anyError?.response?.status;
+      if (status === 409 || anyError.message?.includes("409")) {
         toast({
           title: "Error",
           description: "Tag with this name already exists.",
@@ -62,7 +64,9 @@ function CreateTagForm() {
       } else {
         toast({
           title: "Error",
-          description: "Failed to create tag.",
+          description: `Failed to create tag: ${
+            anyError.message || "An unknown error occurred"
+          }`,
           variant: "destructive",
         });
       }
@@ -73,10 +77,10 @@ function CreateTagForm() {
     e.preventDefault();
     if (!name.trim()) {
       toast({
-      title: "Error",
-      description: "Tag name cannot be empty.",
-      variant: "destructive",
-    });
+        title: "Error",
+        description: "Tag name cannot be empty.",
+        variant: "destructive",
+      });
       return;
     }
     createTag({ name: name.trim() });
@@ -243,10 +247,10 @@ function EditTagDialog({
     e.preventDefault();
     if (!name.trim()) {
       toast({
-      title: "Error",
-      description: "Tag name cannot be empty.",
-      variant: "destructive",
-    });
+        title: "Error",
+        description: "Tag name cannot be empty.",
+        variant: "destructive",
+      });
       return;
     }
     updateTag({ id: tag.id, data: { name: name.trim() } });

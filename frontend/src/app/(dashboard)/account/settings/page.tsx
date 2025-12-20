@@ -31,7 +31,10 @@ function ProfileForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // TODO: Implement profile update logic
-    toast({ title: "Profile updated successfully!" });
+    toast({
+      title: "Profile updates are not available yet",
+      description: "Profile changes cannot be saved at this time.",
+    });
   };
 
   if (isPending) {
@@ -130,10 +133,23 @@ function PasswordForm() {
       });
 
       if (result.error) {
-        if (result.error.message?.includes("Invalid credentials")) {
-          toast({ title: "Incorrect current password. Please try again.", variant: "destructive" });
+        const anyError = result.error as any;
+        const status = anyError?.status ?? anyError?.response?.status;
+
+        if (
+          status === 401 ||
+          status === 400 ||
+          anyError.message?.includes("Invalid credentials")
+        ) {
+          toast({
+            title: "Incorrect current password. Please try again.",
+            variant: "destructive",
+          });
         } else {
-          toast({ title: `Error: ${result.error.message || "An error occurred"}`, variant: "destructive" });
+          toast({
+            title: `Error: ${anyError.message || "An error occurred"}`,
+            variant: "destructive",
+          });
         }
       } else {
         toast({ title: "Password updated successfully!" });
