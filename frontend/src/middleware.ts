@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Define protected routes
-    const protectedRoutes = ["/tasks", "/tags", "/settings"];
+    const protectedRoutes = ["/tasks", "/tags", "/account"];
     const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
     // Redirect unauthenticated users to signin
