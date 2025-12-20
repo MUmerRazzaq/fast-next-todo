@@ -5,8 +5,8 @@
   "outputDirectory": "frontend/.next",
   "installCommand": "cd frontend && npm install",
   "functions": {
-    "backend/app/main.py": {
-      "runtime": "vercel-python@3.12",
+    "backend/app/**/*.py": {
+      "memory": 1024,
       "maxDuration": 30
     }
   },
