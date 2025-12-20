@@ -33,7 +33,7 @@ export function ExportButton({ className }: ExportButtonProps) {
 
     try {
       const response = await fetch(
-        `${config.apiUrl}/tasks/export?format=${format}`,
+        `${config.apiUrl}/tasks/export/download?format=${format}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -54,6 +54,17 @@ export function ExportButton({ className }: ExportButtonProps) {
 
       // Create download link
       const blob = await response.blob();
+
+      // Frontend check for empty blob (due to potential backend issue)
+      if (blob.size === 0) {
+        toast({
+          title: "Export Failed",
+          description: "The exported file is empty. There might be an issue with the backend.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;

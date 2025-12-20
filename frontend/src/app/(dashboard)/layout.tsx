@@ -1,40 +1,49 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { UserButton } from "@/components/layout/user-button";
 import { NotificationPrompt } from "@/components/layout/notification-prompt";
 import { MobileNav } from "@/components/layout/mobile-nav";
-import { Sidebar } from "@/components/dashboard/sidebar";
+import { UnifiedSidebar } from "@/components/dashboard/unified-sidebar";
 import { cn } from "@/lib/utils";
-
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Menu, X } from "lucide-react";
 import { KeyboardShortcutsDialog } from "@/components/layout/keyboard-shortcuts-dialog";
-
-// This is a client component, so metadata should be handled in a parent layout
-// or we can remove it if not needed at this level. For now, we comment it out
-// as it can cause issues in "use client" files in some Next.js versions.
-// export const metadata: Metadata = {
-//   title: "Dashboard",
-// };
+import { FilterProvider, useFilters } from "@/context/filter-context";
+import { useTags } from "@/hooks/use-tags";
+import { useTasks } from "@/hooks/use-tasks";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+function DashboardClientLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showShortcutsDialog, setShowShortcutsDialog] = useState(false);
 
-  useEffect(() => {
-    const savedState = localStorage.getItem("sidebar-collapsed");
-    if (savedState) {
-      setIsCollapsed(JSON.parse(savedState));
-    }
-  }, []);
+  // Filters from context
+  const { filters, setFilters } = useFilters();
+  const { tags, isLoading: tagsLoading } = useTags({ pageSize: 100 });
+
+  // Fetch counts for filters
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const { pagination: allTasks } = useTasks({ pageSize: 1 });
+  const { pagination: activeTasks } = useTasks({ isCompleted: false, pageSize: 1 });
+  const { pagination: completedTasks } = useTasks({ isCompleted: true, pageSize: 1 });
+  const { pagination: highPriorityTasks } = useTasks({ priority: "high", isCompleted: false, pageSize: 1 });
+  const { pagination: overdueTasks } = useTasks({ dueTo: today, isCompleted: false, pageSize: 1 });
+
+  const filterCounts = {
+    all: allTasks?.total ?? 0,
+    active: activeTasks?.total ?? 0,
+    completed: completedTasks?.total ?? 0,
+    highPriority: highPriorityTasks?.total ?? 0,
+    overdue: overdueTasks?.total ?? 0,
+  };
+
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -42,18 +51,20 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [pathname]);
 
   const handleCollapse = () => {
-    const newState = !isCollapsed;
-    setIsCollapsed(newState);
-    localStorage.setItem("sidebar-collapsed", JSON.stringify(newState));
+    setIsCollapsed(prevState => !prevState);
   };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Desktop Sidebar */}
-      <Sidebar
+      <UnifiedSidebar
         isCollapsed={isCollapsed}
         onCollapse={handleCollapse}
         className="hidden lg:flex"
+        filters={filters}
+        onFiltersChange={setFilters}
+        tags={tags}
+        filterCounts={filterCounts}
       />
 
       {/* Mobile Sidebar Overlay */}
@@ -65,10 +76,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             onClick={() => setIsMobileSidebarOpen(false)}
           />
           {/* Sidebar */}
-          <Sidebar
+          <UnifiedSidebar
             isCollapsed={false}
             onCollapse={() => setIsMobileSidebarOpen(false)}
-            className="absolute inset-y-0 left-0 z-50 w-64"
+            className="absolute inset-y-0 left-0 z-50 w-72"
+            filters={filters}
+            onFiltersChange={setFilters}
+            tags={tags}
+            filterCounts={filterCounts}
           />
         </div>
       )}
@@ -137,3 +152,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   );
 }
 
+
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+    return (
+        <FilterProvider>
+            <DashboardClientLayout>{children}</DashboardClientLayout>
+        </FilterProvider>
+    )
+}

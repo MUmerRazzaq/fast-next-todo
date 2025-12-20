@@ -49,7 +49,7 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    href: "/settings",
+    href: "/account/settings",
     label: "Settings",
     icon: (
       <svg

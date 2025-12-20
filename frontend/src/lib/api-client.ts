@@ -59,6 +59,29 @@ export function clearAuthToken(): void {
   tokenExpiry = null;
 }
 
+function toCamel(s: string): string {
+  return s.replace(/([-_][a-z])/ig, ($1) => {
+    return $1.toUpperCase()
+      .replace('-', '')
+      .replace('_', '');
+  });
+}
+
+function transformKeysToCamelCase(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(v => transformKeysToCamelCase(v));
+  } else if (obj && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof Date)) {
+    return Object.keys(obj).reduce(
+      (result, key) => ({
+        ...result,
+        [toCamel(key)]: transformKeysToCamelCase(obj[key]),
+      }),
+      {}
+    );
+  }
+  return obj;
+}
+
 /**
  * Standard API error response structure.
  */
@@ -199,7 +222,8 @@ async function request<T>(
       return undefined as T;
     }
 
-    return (await response.json()) as T;
+    const data = await response.json();
+    return transformKeysToCamelCase(data) as T;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw parseError(new Error("Request timeout"), 408);

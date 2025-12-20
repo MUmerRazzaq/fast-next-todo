@@ -39,7 +39,7 @@ function ProfileForm() {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>Update your profile information.</CardDescription>
+          <CardDescription>Profile information.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -57,7 +57,7 @@ function ProfileForm() {
     <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
-        <CardDescription>Update your profile information.</CardDescription>
+        <CardDescription>Profile information.</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -68,6 +68,7 @@ function ProfileForm() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Your Name"
+              disabled
             />
           </div>
           <div className="space-y-2">
@@ -78,10 +79,9 @@ function ProfileForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              disabled // Email is usually not changeable
+              disabled // Email is not editable
             />
           </div>
-          <Button type="submit">Save Changes</Button>
         </form>
       </CardContent>
     </Card>

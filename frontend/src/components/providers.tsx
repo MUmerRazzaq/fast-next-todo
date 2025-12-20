@@ -32,6 +32,11 @@ export function Providers({ children }: ProvidersProps) {
       replace={router.replace}
       onSessionChange={() => router.refresh()}
       Link={Link}
+      account={{
+        viewPaths: {
+          SETTINGS: "/account/settings",
+        },
+      }}
       localizeErrors={false}
     >
       <QueryClientProvider client={queryClient}>

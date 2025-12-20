@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import {
   ListTodo,
   Tags,
-  Settings,
   PanelLeftClose,
   PanelRightClose,
 } from "lucide-react";
@@ -21,7 +20,6 @@ interface SidebarProps {
 const navItems = [
   { href: "/tasks", label: "Tasks", icon: ListTodo },
   { href: "/tags", label: "Tags", icon: Tags },
-  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar({ isCollapsed, onCollapse, className }: SidebarProps) {
