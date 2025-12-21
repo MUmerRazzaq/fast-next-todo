@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/edge/**/*.ts": {
+      "runtime": "edge"
+    },
+    "api/serverless/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/edge/(.*)",
+      "destination": "/api/edge/$1"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/serverless/$1"
+    }
+  ]
+}
