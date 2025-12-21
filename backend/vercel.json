@@ -1,16 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "regions": ["iad1"],
-  "builds": [
-    {
-      "src": "app/main.py",
-      "use": "@vercel/python"
+  "functions": {
+    "api/**/*.py": {
+      "maxDuration": 30,
+      "memory": 1024
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/app/main.py"
+      "destination": "/api/index.py"
     }
   ]
 }

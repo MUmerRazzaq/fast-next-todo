@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: "standalone", // Required for Docker production build
+  // Note: "output: standalone" is for Docker only, not needed for Vercel
   experimental: {
     typedRoutes: true,
   },
