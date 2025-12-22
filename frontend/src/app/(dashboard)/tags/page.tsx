@@ -28,6 +28,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import type { Tag } from "@/types/api";
+import { ApiError } from "@/lib/api-client";
 
 export default function TagsPage() {
   return (
@@ -53,9 +54,9 @@ function CreateTagForm() {
       setName("");
     },
     onError: (error) => {
-      const anyError = error as any;
-      const status = anyError?.status ?? anyError?.response?.status;
-      if (status === 409 || anyError.message?.includes("409")) {
+      const apiError = error as ApiError;
+      const status = apiError?.status;
+      if (status === 409 || apiError.message?.includes("409")) {
         toast({
           title: "Error",
           description: "Tag with this name already exists.",
@@ -65,7 +66,7 @@ function CreateTagForm() {
         toast({
           title: "Error",
           description: `Failed to create tag: ${
-            anyError.message || "An unknown error occurred"
+            apiError.message || "An unknown error occurred"
           }`,
           variant: "destructive",
         });
@@ -155,7 +156,7 @@ function TagList() {
         </CardHeader>
         <CardContent className="text-center py-12">
           <p className="text-muted-foreground">
-            You haven't created any tags yet.
+            You haven&apos;t created any tags yet.
           </p>
           <p className="text-muted-foreground mt-2">
             Use the form above to create your first one!

@@ -41,7 +41,7 @@ export function TaskList({ tasks, selectedTaskIndex, onEdit, onDelete }: TaskLis
           <h3 className="text-sm font-medium text-muted-foreground mb-3">
             Completed ({completedTasks.length})
           </h3>
-          <div className="space-y-3 opacity-70">
+          <div className="space-y-3">
             {completedTasks.map((task) => (
               <TaskCard key={task.id} task={task} isSelected={task.id === selectedTaskId} onEdit={onEdit} onDelete={onDelete} />
             ))}

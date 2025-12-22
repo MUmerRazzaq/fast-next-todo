@@ -67,7 +67,7 @@ function toCamel(s: string): string {
   });
 }
 
-function transformKeysToCamelCase(obj: any): any {
+function transformKeysToCamelCase<T>(obj: T): T {
   if (Array.isArray(obj)) {
     return obj.map(v => transformKeysToCamelCase(v));
   } else if (obj && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof Date)) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import type { Task } from "@/types/api";
 import type { AuditLogEntry } from "@/types/audit";
@@ -21,13 +21,7 @@ export function TaskAuditDialog({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      fetchAuditLogs();
-    }
-  }, [open, task.id]);
-
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -51,25 +45,20 @@ export function TaskAuditDialog({
         `/tasks/${task.id}/audit`
       );
       // Transform snake_case to camelCase
-      const transformedLogs = response.items.map((item) => ({
-        id: item.id,
-        entityType: item.entity_type,
-        entityId: item.entity_id,
-        userId: item.user_id,
-        actionType: item.action_type,
-        fieldChanged: item.field_changed,
-        oldValue: item.old_value,
-        newValue: item.new_value,
-        timestamp: item.timestamp,
-        isSystemAction: item.is_system_action,
-      }));
+      const transformedLogs = response.items;
       setLogs(transformedLogs);
     } catch {
       setError("Failed to load audit history");
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [task.id]);
+
+  useEffect(() => {
+    if (open) {
+      fetchAuditLogs();
+    }
+  }, [open, task.id, fetchAuditLogs]);
 
   if (!open) return null;
 
@@ -204,6 +193,11 @@ export function TaskAuditDialog({
                     {log.actionType === "recurring_auto_create" && (
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                    )}
+                    {!(log.actionType === "create" || log.actionType === "update" || log.actionType === "complete" || log.actionType === "uncomplete" || log.actionType === "delete" || log.actionType === "recurring_auto_create") && (
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.174 3.355 1.945 3.355h13.713c1.77 0 2.81-1.855 1.943-3.356L12 2.25 2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                       </svg>
                     )}
                   </div>

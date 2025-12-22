@@ -112,7 +112,7 @@ export function NoResults({
       {searchQuery && (
         <p className="mb-4 text-sm">
           <span className="text-muted-foreground">Searched for: </span>
-          <span className="font-medium text-foreground">"{searchQuery}"</span>
+          <span className="font-medium text-foreground">&quot;{searchQuery}&quot;</span>
         </p>
       )}
 

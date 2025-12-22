@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api-client";
+import { api, ApiError } from "@/lib/api-client";
 import type { Tag, TagCreate, TagUpdate, TagListResponse, TagListParams } from "@/types/api";
 
 /**
@@ -127,7 +127,7 @@ export function useInvalidateTags() {
  */
 interface TagMutationOptions {
   onSuccess?: () => void;
-  onError?: (error: Error) => void;
+  onError?: (error: ApiError) => void;
 }
 
 /**

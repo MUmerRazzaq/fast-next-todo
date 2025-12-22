@@ -229,7 +229,7 @@ export function TagManager({ open, onOpenChange }: TagManagerProps) {
                     // Delete confirmation
                     <>
                       <span className="flex-1 text-sm text-destructive">
-                        Delete "{tag.name}"?
+                        Delete &quot;{tag.name}&quot;?
                       </span>
                       <button
                         onClick={() => handleDelete(tag.id)}

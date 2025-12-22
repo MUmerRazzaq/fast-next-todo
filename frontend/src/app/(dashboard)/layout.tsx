@@ -26,7 +26,7 @@ function DashboardClientLayout({ children }: DashboardLayoutProps) {
 
   // Filters from context
   const { filters, setFilters } = useFilters();
-  const { tags, isLoading: tagsLoading } = useTags({ pageSize: 100 });
+  const { tags, isLoading: _tagsLoading } = useTags({ pageSize: 100 });
 
   // Fetch counts for filters
   const today = useMemo(() => new Date().toISOString().split('T')[0], []);

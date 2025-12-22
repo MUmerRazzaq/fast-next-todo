@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSession, authClient } from "@/components/providers";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
@@ -69,7 +69,7 @@ function ProfileForm() {
             <Input
               id="name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
               placeholder="Your Name"
               disabled
             />
@@ -80,7 +80,7 @@ function ProfileForm() {
               id="email"
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
               placeholder="your@email.com"
               disabled // Email is not editable
             />
@@ -127,29 +127,48 @@ function PasswordForm() {
 
     setIsUpdating(true);
     try {
-      const result = await authClient.changePassword({
+      const result: AuthClientResult = await authClient.changePassword({
         currentPassword,
         newPassword,
       });
 
+interface BetterAuthError {
+  message?: string;
+  code?: string;
+  status?: number;
+  response?: {
+    status?: number;
+  };
+}
+
+// Result type for better-auth client methods
+interface AuthClientResult<T = unknown> {
+  data?: T;
+  error?: BetterAuthError;
+}
+
+// In the PasswordForm function, update the result type for authClient.changePassword
+// (assuming changePassword returns AuthClientResult<void> or similar on success)
+// and then use BetterAuthError for the error object.
+
       if (result.error) {
-        const anyError = result.error as any;
-        const status = anyError?.status ?? anyError?.response?.status;
+        const betterAuthError: BetterAuthError = result.error;
+        const status = betterAuthError?.status ?? betterAuthError?.response?.status;
 
         if (
           status === 401 ||
           status === 400 ||
-          anyError.message?.includes("Invalid credentials")
+          betterAuthError.message?.includes("Invalid credentials")
         ) {
           toast({
             title: "Incorrect current password. Please try again.",
             variant: "destructive",
           });
         } else {
-          toast({
-            title: `Error: ${anyError.message || "An error occurred"}`,
-            variant: "destructive",
-          });
+            toast({
+              title: `Error: ${betterAuthError.message || "An error occurred"}`,
+              variant: "destructive",
+            });
         }
       } else {
         toast({ title: "Password updated successfully!" });
@@ -157,7 +176,7 @@ function PasswordForm() {
         setNewPassword("");
         setConfirmPassword("");
       }
-    } catch (err) {
+    } catch (_err) {
       toast({ title: "Failed to update password. Please try again.", variant: "destructive" });
     } finally {
       setIsUpdating(false);
