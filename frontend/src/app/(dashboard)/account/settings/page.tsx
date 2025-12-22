@@ -176,7 +176,7 @@ interface AuthClientResult<T = unknown> {
         setNewPassword("");
         setConfirmPassword("");
       }
-    } catch (_err) {
+    } catch {
       toast({ title: "Failed to update password. Please try again.", variant: "destructive" });
     } finally {
       setIsUpdating(false);
