@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "alembic upgrade head",
+  "buildCommand": "python -m alembic upgrade head",
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
