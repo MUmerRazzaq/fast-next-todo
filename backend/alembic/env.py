@@ -24,7 +24,9 @@ target_metadata = SQLModel.metadata
 def get_database_url() -> str:
     """Get database URL from environment variable."""
     url = os.environ.get("DATABASE_URL")
+    print(f"DEBUG: DATABASE_URL from os.environ.get: {url}") # Add this line
     if not url:
+        print("DEBUG: DATABASE_URL is not set or empty!") # Add this line
         raise ValueError("DATABASE_URL environment variable is not set")
     # Convert postgresql:// to postgresql+psycopg:// for psycopg3
     if url.startswith("postgresql://"):
