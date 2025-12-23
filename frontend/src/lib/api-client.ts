@@ -59,6 +59,15 @@ export function clearAuthToken(): void {
   tokenExpiry = null;
 }
 
+type SnakeToCamelCase<S extends string> =
+  S extends `${infer K}_${infer L}` ? `${K}${Capitalize<SnakeToCamelCase<L>>}` : S;
+
+type KeysToCamelCase<T> = {
+  [K in keyof T as K extends string ? SnakeToCamelCase<K> : K]: T[K] extends Record<string, unknown> | Array<unknown>
+    ? KeysToCamelCase<T[K]>
+    : T[K];
+};
+
 function toCamel(s: string): string {
   return s.replace(/([-_][a-z])/ig, ($1) => {
     return $1.toUpperCase()
@@ -67,9 +76,9 @@ function toCamel(s: string): string {
   });
 }
 
-function transformKeysToCamelCase(obj: any): any {
+function transformKeysToCamelCase<T>(obj: T): KeysToCamelCase<T> {
   if (Array.isArray(obj)) {
-    return obj.map(v => transformKeysToCamelCase(v));
+    return obj.map(v => transformKeysToCamelCase(v)) as KeysToCamelCase<T>;
   } else if (obj && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof Date)) {
     return Object.keys(obj).reduce(
       (result, key) => ({
@@ -77,9 +86,9 @@ function transformKeysToCamelCase(obj: any): any {
         [toCamel(key)]: transformKeysToCamelCase(obj[key]),
       }),
       {}
-    );
+    ) as KeysToCamelCase<T>;
   }
-  return obj;
+  return obj as KeysToCamelCase<T>;
 }
 
 /**
@@ -173,7 +182,7 @@ function buildUrl(
 async function request<T>(
   endpoint: string,
   options: RequestConfig = {}
-): Promise<T> {
+): Promise<KeysToCamelCase<T>> {
   const { timeout = 10000, params, ...fetchOptions } = options;
 
   // Build URL with query params
@@ -223,7 +232,7 @@ async function request<T>(
     }
 
     const data = await response.json();
-    return transformKeysToCamelCase(data) as T;
+    return transformKeysToCamelCase(data);
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") {
       throw parseError(new Error("Request timeout"), 408);
@@ -246,14 +255,14 @@ export const api = {
   /**
    * GET request.
    */
-  get<T>(endpoint: string, options?: RequestConfig): Promise<T> {
+  get<T>(endpoint: string, options?: RequestConfig): Promise<KeysToCamelCase<T>> {
     return request<T>(endpoint, { ...options, method: "GET" });
   },
 
   /**
    * POST request.
    */
-  post<T>(endpoint: string, data?: unknown, options?: RequestConfig): Promise<T> {
+  post<T>(endpoint: string, data?: unknown, options?: RequestConfig): Promise<KeysToCamelCase<T>> {
     return request<T>(endpoint, {
       ...options,
       method: "POST",
@@ -264,7 +273,7 @@ export const api = {
   /**
    * PUT request.
    */
-  put<T>(endpoint: string, data?: unknown, options?: RequestConfig): Promise<T> {
+  put<T>(endpoint: string, data?: unknown, options?: RequestConfig): Promise<KeysToCamelCase<T>> {
     return request<T>(endpoint, {
       ...options,
       method: "PUT",
@@ -275,7 +284,7 @@ export const api = {
   /**
    * PATCH request.
    */
-  patch<T>(endpoint: string, data?: unknown, options?: RequestConfig): Promise<T> {
+  patch<T>(endpoint: string, data?: unknown, options?: RequestConfig): Promise<KeysToCamelCase<T>> {
     return request<T>(endpoint, {
       ...options,
       method: "PATCH",
@@ -286,7 +295,7 @@ export const api = {
   /**
    * DELETE request.
    */
-  delete<T>(endpoint: string, options?: RequestConfig): Promise<T> {
+  delete<T>(endpoint: string, options?: RequestConfig): Promise<KeysToCamelCase<T>> {
     return request<T>(endpoint, { ...options, method: "DELETE" });
   },
 };
