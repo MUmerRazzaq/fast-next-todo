@@ -1,15 +1,22 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "alembic upgrade head",
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    }
+  ],
   "functions": {
     "api/index.py": {
       "maxDuration": 30,
       "memory": 1024
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/api/index.py"
+      "src": "/(.*)",
+      "dest": "api/index.py"
     }
   ]
 }
