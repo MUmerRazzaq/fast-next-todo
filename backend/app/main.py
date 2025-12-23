@@ -5,7 +5,6 @@ from typing import Any
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
 
 from app.config import get_settings
 
@@ -83,6 +82,3 @@ async def root() -> dict[str, Any]:
         "docs": "/docs" if settings.debug else "Disabled in production",
     }
 
-
-# Vercel serverless handler
-handler = Mangum(app, lifespan="off")
