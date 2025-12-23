@@ -1,4 +1,4 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "alembic upgrade head"
+  "buildCommand": "python -c \"import alembic.config; alembic.config.main(['upgrade', 'head'])\""
 }
