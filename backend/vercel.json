@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "python -m alembic upgrade head",
   "functions": {
-    "api/index.py": {
+    "api/*.py": {
       "maxDuration": 30,
       "memory": 1024
     }
