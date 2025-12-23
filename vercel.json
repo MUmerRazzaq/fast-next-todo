@@ -1,0 +1,32 @@
+{
+  "installCommand": "npm install --prefix frontend && pip install -e backend",
+  "buildCommand": "npm run build --prefix frontend && python -m alembic upgrade head",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/.next/server/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=1, stale-while-revalidate"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "backend/api/index.py": {
+      "runtime": "python3.9",
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  }
+}

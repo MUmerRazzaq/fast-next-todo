@@ -3,8 +3,18 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import type { Task } from "@/types/api";
-import type { AuditLogEntry } from "@/types/audit";
+import type { AuditLogEntry, ActionType } from "@/types/audit"; // Import ActionType
 import { formatActionType, getActionColor } from "@/types/audit";
+
+// Define known action types for more maintainable icon logic
+const KNOWN_ACTION_TYPES: ActionType[] = [
+  "create",
+  "update",
+  "complete",
+  "uncomplete",
+  "delete",
+  "recurring_auto_create",
+];
 
 interface TaskAuditDialogProps {
   task: Task;
@@ -44,7 +54,6 @@ export function TaskAuditDialog({
       const response = await api.get<RawAuditLogResponse>(
         `/tasks/${task.id}/audit`
       );
-      // Transform snake_case to camelCase
       const transformedLogs = response.items;
       setLogs(transformedLogs);
     } catch {
@@ -195,7 +204,7 @@ export function TaskAuditDialog({
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                       </svg>
                     )}
-                    {!(log.actionType === "create" || log.actionType === "update" || log.actionType === "complete" || log.actionType === "uncomplete" || log.actionType === "delete" || log.actionType === "recurring_auto_create") && (
+                    {!KNOWN_ACTION_TYPES.includes(log.actionType) && (
                       <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.174 3.355 1.945 3.355h13.713c1.77 0 2.81-1.855 1.943-3.356L12 2.25 2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                       </svg>

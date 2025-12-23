@@ -147,24 +147,6 @@ function PasswordForm() {
         newPassword,
       });
 
-interface BetterAuthError {
-  message?: string;
-  code?: string;
-  status?: number;
-  response?: {
-    status?: number;
-  };
-}
-
-// Result type for better-auth client methods
-interface AuthClientResult<T = unknown> {
-  data?: T;
-  error?: BetterAuthError;
-}
-
-// In the PasswordForm function, update the result type for authClient.changePassword
-// (assuming changePassword returns AuthClientResult<void> or similar on success)
-// and then use BetterAuthError for the error object.
 
       if (result.error) {
         const betterAuthError: BetterAuthError = result.error;
@@ -180,10 +162,10 @@ interface AuthClientResult<T = unknown> {
             variant: "destructive",
           });
         } else {
-            toast({
-              title: `Error: ${betterAuthError.message || "An error occurred"}`,
-              variant: "destructive",
-            });
+          toast({
+            title: `Error: ${betterAuthError.message || "An error occurred"}`,
+            variant: "destructive",
+          });
         }
       } else {
         toast({ title: "Password updated successfully!" });
