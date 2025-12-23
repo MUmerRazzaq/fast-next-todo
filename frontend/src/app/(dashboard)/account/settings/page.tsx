@@ -15,6 +15,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
+interface BetterAuthError {
+  message?: string;
+  code?: string;
+  status?: number;
+  response?: {
+    status?: number;
+  };
+}
+
+// Result type for better-auth client methods
+interface AuthClientResult<T = unknown> {
+  data?: T;
+  error?: BetterAuthError | null; // Allow null for error
+}
+
 function ProfileForm() {
   const { data: session, isPending } = useSession();
   const { toast } = useToast();
