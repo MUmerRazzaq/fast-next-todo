@@ -2,7 +2,7 @@
 
 ## Overview
 
-Vercel supports Python serverless functions with native FastAPI, Flask, and Django support.
+Vercel supports Python serverless functions with native FastAPI, Flask, and Django support. It's important to note that for FastAPI, Vercel now natively handles the ASGI application, eliminating the need for `Mangum` in most basic deployments.
 
 ---
 
@@ -84,16 +84,19 @@ def health():
     return {"status": "healthy"}
 ```
 
-### Step 2: Create the Vercel Entrypoint
+### Step 2: Create the Vercel Entrypoint (No Mangum Required)
+
+For basic FastAPI deployments, Vercel can directly use your `FastAPI` app instance.
 
 ```python
 # api/index.py
-from mangum import Mangum
 from app.main import app
-
-# Mangum wraps ASGI apps for AWS Lambda/Vercel
-handler = Mangum(app, lifespan="off")
 ```
+**Note:** If your `app/main.py` directly defines `app = FastAPI(...)`, you might not need an `api/index.py` at all for simple cases. Vercel can often auto-detect and run your app. If you do need an `api/index.py` for specific configurations or routing, simply exposing the `app` instance is sufficient.
+
+Previously, `Mangum` was used to adapt ASGI applications like FastAPI for serverless environments. However, Vercel now provides native support for FastAPI, making `Mangum` unnecessary and potentially leading to deployment errors like `TypeError: issubclass() arg 1 must be a class` if still used. Remove `Mangum` from your dependencies (`requirements.txt`) if you encounter such errors.
+
+The `handler` variable exported from `api/index.py` is typically used for older configurations or when explicit wrapping is needed. For modern FastAPI on Vercel, directly exposing the `app` object is the recommended approach.
 
 ### Step 3: Configure vercel.json
 
@@ -120,7 +123,6 @@ handler = Mangum(app, lifespan="off")
 ```txt
 # requirements.txt
 fastapi>=0.115.0
-mangum>=0.19.0
 uvicorn>=0.30.0
 ```
 
@@ -394,21 +396,29 @@ app.add_middleware(
 - Polling
 - External WebSocket service (Pusher, Ably)
 
-### Edge Case 8: Lifespan Events Not Working
+### Edge Case 8: Lifespan Events Behavior
 
-**Problem**: FastAPI lifespan startup/shutdown not called
+**Problem**: FastAPI lifespan startup/shutdown events might not behave as expected or `Mangum` might still be present causing issues.
 
-**Cause**: Mangum needs lifespan disabled for Vercel
+**Cause**: When using `Mangum` (which is generally no longer needed for basic FastAPI deployments on Vercel due to native support), `lifespan="off"` was often used. If `Mangum` is still in your `api/index.py` or `main.py` and you're experiencing issues, it might conflict with Vercel's native handling.
 
 **Solution**:
+1.  **Remove `Mangum`**: For most cases, you can remove `Mangum` entirely from your project (from `requirements.txt` and your `api/index.py` or `main.py`). Vercel will handle the ASGI application directly.
+2.  **Native FastAPI Lifespan**: With native Vercel support, FastAPI's `lifespan` context manager in `app.main:app` should work as designed. Ensure your `FastAPI` app is initialized with the `lifespan` argument:
 
-```python
-# api/index.py
-from mangum import Mangum
-from app.main import app
+    ```python
+    # app/main.py
+    from contextlib import asynccontextmanager
+    from fastapi import FastAPI
 
-handler = Mangum(app, lifespan="off")  # Disable lifespan
-```
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        # Perform startup logic
+        yield
+        # Perform shutdown logic
+
+    app = FastAPI(lifespan=lifespan)
+    ```
 
 ---
 
@@ -419,7 +429,7 @@ handler = Mangum(app, lifespan="off")  # Disable lifespan
 ```txt
 # requirements.txt - Only include what you need
 fastapi>=0.115.0
-mangum>=0.19.0
+# Don't include: mangum (no longer needed for basic deployments)
 # Don't include: uvicorn (not needed on Vercel)
 ```
 
@@ -491,10 +501,7 @@ def get_users(session: Session = Depends(get_session)):
 
 ```python
 # api/index.py
-from mangum import Mangum
 from app.main import app
-
-handler = Mangum(app, lifespan="off")
 ```
 
 ```json

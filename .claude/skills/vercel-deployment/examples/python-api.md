@@ -178,18 +178,16 @@ from pathlib import Path
 # Add project root to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from mangum import Mangum
 from app.main import app
 
-# Disable lifespan for Vercel
-handler = Mangum(app, lifespan="off")
+# Vercel's native FastAPI support means we just need to expose the 'app' object.
+# Mangum is no longer required for basic deployments and can cause issues if present.
 ```
 
 ### requirements.txt
 
 ```
 fastapi>=0.115.0
-mangum>=0.19.0
 pydantic>=2.0.0
 ```
 
@@ -202,7 +200,6 @@ version = "1.0.0"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
-    "mangum>=0.19.0",
     "pydantic>=2.0.0",
 ]
 ```
