@@ -7,6 +7,11 @@ export async function middleware(request: NextRequest) {
     });
     const { pathname } = request.nextUrl;
 
+    // If user is authenticated and at the root, redirect to tasks
+    if (session && pathname === "/") {
+      return NextResponse.redirect(new URL("/tasks", request.url));
+    }
+
     // Redirect authenticated users away from auth pages
     if (session && (pathname === "/auth/sign-in" || pathname === "/auth/sign-up")) {
       return NextResponse.redirect(new URL("/tasks", request.url));
