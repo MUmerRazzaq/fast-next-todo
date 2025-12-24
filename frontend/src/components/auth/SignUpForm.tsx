@@ -49,7 +49,7 @@ export function SignUpForm() {
       const result = await signUpWithEmail(
         data.email,
         data.password,
-        data.name || undefined
+        data.name
       );
 
       if (!result.success) {
@@ -57,7 +57,7 @@ export function SignUpForm() {
         return;
       }
 
-      router.push("/tasks");
+      router.push("/tasks" as const);
       router.refresh();
     } catch {
       setError("An unexpected error occurred. Please try again.");

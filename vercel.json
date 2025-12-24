@@ -5,6 +5,10 @@
     {
       "source": "/api/(.*)",
       "destination": "/backend/api/index.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/.next/server/:path*"
     }
   ],
   "headers": [

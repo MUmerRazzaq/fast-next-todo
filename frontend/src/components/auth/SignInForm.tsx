@@ -51,7 +51,7 @@ export function SignInForm() {
         return;
       }
 
-      router.push("/tasks");
+      router.push("/tasks" as const);
       router.refresh();
     } catch {
       setError("An unexpected error occurred. Please try again.");
