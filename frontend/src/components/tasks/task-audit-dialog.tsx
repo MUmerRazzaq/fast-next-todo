@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "@/lib/api-client";
 import type { Task } from "@/types/api";
-import type { AuditLogEntry, ActionType } from "@/types/audit"; // Import ActionType
+import type { AuditLogEntry, ActionType, AuditLogListResponse } from "@/types/audit";
 import { formatActionType, getActionColor } from "@/types/audit";
 
 // Define known action types for more maintainable icon logic
@@ -35,27 +35,11 @@ export function TaskAuditDialog({
     setIsLoading(true);
     setError(null);
     try {
-      // API returns snake_case, so we need a raw type
-      interface RawAuditLogResponse {
-        items: Array<{
-          id: string;
-          entity_type: string;
-          entity_id: string;
-          user_id: string;
-          action_type: AuditLogEntry["actionType"];
-          field_changed: string | null;
-          old_value: string | null;
-          new_value: string | null;
-          timestamp: string;
-          is_system_action: boolean;
-        }>;
-        total: number;
-      }
-      const response = await api.get<RawAuditLogResponse>(
+      // api.get automatically transforms snake_case to camelCase
+      const response = await api.get<AuditLogListResponse>(
         `/tasks/${task.id}/audit`
       );
-      const transformedLogs = response.items;
-      setLogs(transformedLogs);
+      setLogs(response.items as AuditLogEntry[]);
     } catch {
       setError("Failed to load audit history");
     } finally {

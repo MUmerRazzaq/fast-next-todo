@@ -41,7 +41,7 @@ export function FilterProvider({ children }: { children: ReactNode }) {
     if (newFilters.dueTo) {
       params.set('dueTo', newFilters.dueTo);
     }
-    router.push(`${pathname}?${params.toString()}`);
+    router.push(`${pathname}?${params.toString()}` as "/tasks");
   }, [pathname, router]);
 
   return (

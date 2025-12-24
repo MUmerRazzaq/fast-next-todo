@@ -18,8 +18,8 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { href: "/tasks", label: "Tasks", icon: ListTodo },
-  { href: "/tags", label: "Tags", icon: Tags },
+  { href: "/tasks" as const, label: "Tasks", icon: ListTodo },
+  { href: "/tags" as const, label: "Tags", icon: Tags },
 ];
 
 export function Sidebar({ isCollapsed, onCollapse, className }: SidebarProps) {

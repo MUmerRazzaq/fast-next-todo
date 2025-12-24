@@ -3,15 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-interface NavItem {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-}
-
-const navItems: NavItem[] = [
+const navItems = [
   {
-    href: "/tasks",
+    href: "/tasks" as const,
     label: "Tasks",
     icon: (
       <svg
@@ -30,7 +24,7 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    href: "/tags",
+    href: "/tags" as const,
     label: "Tags",
     icon: (
       <svg
@@ -49,7 +43,7 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    href: "/account/settings",
+    href: "/account/settings" as const,
     label: "Settings",
     icon: (
       <svg

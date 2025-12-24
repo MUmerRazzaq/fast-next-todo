@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { ListTodo } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Authentication",
@@ -11,21 +13,26 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold text-foreground">Fast Next Todo</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Intelligent task management for everyone
-          </p>
-        </div>
-        <div className="rounded-lg border bg-card p-6 shadow-sm">
-          {children}
-        </div>
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+    <div className="flex min-h-screen flex-col bg-background">
+      {/* Header */}
+      <header className="flex h-16 shrink-0 items-center justify-center border-b px-4">
+        <Link href={"/" as const} className="flex items-center gap-2">
+          <ListTodo className="h-6 w-6 text-primary" />
+          <span className="font-semibold text-foreground">Fast Next Todo</span>
+        </Link>
+      </header>
+
+      {/* Main Content - Centered */}
+      <main className="flex flex-1 items-center justify-center p-4">
+        {children}
+      </main>
+
+      {/* Footer */}
+      <footer className="flex h-14 shrink-0 items-center justify-center border-t px-4">
+        <p className="text-center text-xs text-muted-foreground">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
-      </div>
+      </footer>
     </div>
   );
 }

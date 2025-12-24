@@ -80,10 +80,11 @@ function transformKeysToCamelCase<T>(obj: T): KeysToCamelCase<T> {
   if (Array.isArray(obj)) {
     return obj.map(v => transformKeysToCamelCase(v)) as KeysToCamelCase<T>;
   } else if (obj && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof Date)) {
-    return Object.keys(obj).reduce(
+    const record = obj as Record<string, unknown>;
+    return Object.keys(record).reduce(
       (result, key) => ({
         ...result,
-        [toCamel(key)]: transformKeysToCamelCase(obj[key]),
+        [toCamel(key)]: transformKeysToCamelCase(record[key]),
       }),
       {}
     ) as KeysToCamelCase<T>;
@@ -228,7 +229,7 @@ async function request<T>(
 
     // Parse response
     if (response.status === 204) {
-      return undefined as T;
+      return undefined as unknown as KeysToCamelCase<T>;
     }
 
     const data = await response.json();

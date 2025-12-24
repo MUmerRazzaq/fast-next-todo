@@ -290,6 +290,7 @@ export function useTaskMutations() {
     deleteTask: remove.deleteTask,
     completeTask: complete.completeTask,
     uncompleteTask: uncomplete.uncompleteTask,
+    isDeleting: remove.isDeleting,
     isLoading:
       create.isCreating ||
       update.isUpdating ||

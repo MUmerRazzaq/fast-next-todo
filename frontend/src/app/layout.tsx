@@ -16,6 +16,9 @@ export const metadata: Metadata = {
   description: "Intelligent multi-user task management application",
   keywords: ["todo", "tasks", "productivity", "task management"],
   authors: [{ name: "Fast Next Todo Team" }],
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export const viewport: Viewport = {
