@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/apply-schema.mjs && next dev",
+    "db:apply-schema": "node scripts/apply-schema.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -20,7 +21,6 @@
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.11.1",
-    "@daveyplate/better-auth-ui": "^3.3.4",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-checkbox": "^1.1.3",

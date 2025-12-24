@@ -47,7 +47,7 @@ async function updateTag({ id, data }: { id: string; data: TagUpdate }): Promise
  * Delete a tag.
  */
 async function deleteTag(id: string): Promise<void> {
-  return api.delete(`/tags/${id}`);
+  await api.delete(`/tags/${id}`);
 }
 
 /**

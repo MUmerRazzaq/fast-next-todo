@@ -7,6 +7,10 @@
     "next-devtools": {
       "command": "npx",
       "args": ["-y", "next-devtools-mcp@latest"]
+    },
+    "memory": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "mcp/memory"]
     }
   }
 }

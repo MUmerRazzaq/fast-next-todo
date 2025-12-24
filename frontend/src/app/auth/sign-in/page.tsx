@@ -1,14 +1,13 @@
-import { AuthView } from "@daveyplate/better-auth-ui";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { SignInForm } from "@/components/auth/SignInForm";
 
 export default function SignInPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <AuthView
-        localization={{
-          INVALID_USERNAME_OR_PASSWORD:
-            "Invalid credentials. Please try again.",
-        }}
-      />
-    </div>
+    <AuthCard
+      title="Welcome back"
+      description="Enter your credentials to access your account"
+    >
+      <SignInForm />
+    </AuthCard>
   );
 }

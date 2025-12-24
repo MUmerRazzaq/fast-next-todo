@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { useAuthenticate } from "@daveyplate/better-auth-ui";
-import { authClient, signIn, signOut, signUp } from "@/lib/auth-client";
+import { signIn, signOut, signUp } from "@/lib/auth-client";
+import { useSession } from "@/components/providers";
 import { clearAuthToken } from "@/lib/api-client";
 
 /**
@@ -67,17 +67,17 @@ export interface UseAuthReturn {
  */
 export function useAuth(): UseAuthReturn {
   const router = useRouter();
-  const { user: sessionUser, isPending, error, refetch } = useAuthenticate();
+  const { data: session, isPending, error, refetch } = useSession();
 
   const user = useMemo<User | null>(() => {
-    if (!sessionUser) return null;
+    if (!session?.user) return null;
     return {
-      id: sessionUser.id,
-      email: sessionUser.email,
-      name: sessionUser.name ?? null,
-      image: sessionUser.image ?? null,
+      id: session.user.id,
+      email: session.user.email,
+      name: session.user.name ?? null,
+      image: session.user.image ?? null,
     };
-  }, [sessionUser]);
+  }, [session?.user]);
 
   const signInWithEmail = useCallback(
     async (email: string, password: string) => {
@@ -124,7 +124,7 @@ export function useAuth(): UseAuthReturn {
   const logout = useCallback(async () => {
     clearAuthToken(); // Clear cached JWT token
     await signOut();
-    router.push("/auth/sign-in");
+    router.push("/auth/sign-in" as const);
     router.refresh();
   }, [router]);
 
@@ -143,6 +143,3 @@ export function useAuth(): UseAuthReturn {
     refresh,
   };
 }
-
-// Re-export for convenience
-export { authClient };

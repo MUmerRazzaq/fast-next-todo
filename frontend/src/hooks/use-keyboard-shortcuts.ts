@@ -2,14 +2,17 @@
 
 import { useEffect, useCallback, useRef } from "react";
 
-interface KeyboardShortcut {
+interface KeyboardShortcutBase {
   key: string;
   ctrl?: boolean;
   shift?: boolean;
   alt?: boolean;
   meta?: boolean;
-  handler: () => void;
   description: string;
+}
+
+interface KeyboardShortcut extends KeyboardShortcutBase {
+  handler: () => void;
 }
 
 interface UseKeyboardShortcutsOptions {
@@ -72,7 +75,7 @@ export function useKeyboardShortcuts({
 /**
  * Format a keyboard shortcut for display.
  */
-export function formatShortcut(shortcut: KeyboardShortcut): string {
+export function formatShortcut(shortcut: KeyboardShortcutBase): string {
   const parts: string[] = [];
 
   if (shortcut.ctrl) {

@@ -1,9 +1,13 @@
-import { AuthView } from "@daveyplate/better-auth-ui";
+import { AuthCard } from "@/components/auth/AuthCard";
+import { SignUpForm } from "@/components/auth/SignUpForm";
 
 export default function SignUpPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <AuthView view="SIGN_UP" />
-    </div>
+    <AuthCard
+      title="Create an account"
+      description="Enter your details to get started"
+    >
+      <SignUpForm />
+    </AuthCard>
   );
 }
