@@ -73,6 +73,9 @@ yarn-error.log*
 .next/
 out/
 
+# TypeScript build cache
+*.tsbuildinfo
+
 # Production
 build/
 

@@ -153,6 +153,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         call_next: Callable[[Request], Response],
     ) -> Response:
         """Process request with rate limiting."""
+        # Skip rate limiting for OPTIONS preflight requests (CORS)
+        # OPTIONS requests don't carry auth headers and must pass through
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         # Skip rate limiting for health checks
         if request.url.path.endswith("/health"):
             return await call_next(request)

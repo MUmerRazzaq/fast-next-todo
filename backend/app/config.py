@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
+        env_nested_delimiter=None,
     )
 
     # Application
@@ -43,8 +45,25 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
 
     # CORS
+    # Primary frontend URL (set via FRONTEND_URL env var in production)
     frontend_url: str = "http://localhost:3000"
-    allowed_origins: list[str] = ["http://localhost:3000"]
+    # Additional allowed origins (comma-separated in env: ALLOWED_ORIGINS)
+    allowed_origins: list[str] = []
+
+    @field_validator('allowed_origins', mode='before')
+    @classmethod
+    def parse_allowed_origins(cls, v: str) -> list[str]:
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Get all unique CORS origins including frontend_url."""
+        origins = {self.frontend_url}
+        origins.update(self.allowed_origins)
+        # Remove any empty strings and return a deterministic ordering
+        return sorted([o for o in origins if o])
 
     # Rate Limiting
     rate_limit_requests_per_minute: int = 100
