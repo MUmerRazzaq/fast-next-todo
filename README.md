@@ -116,7 +116,7 @@ The authentication flow is designed to be secure and stateless from the backend'
 
 ## 6. API Overview
 
-All endpoints are prefixed with `/api/v1` and require a valid JWT for authentication.
+All endpoints are prefixed with `/api/v1`. Most endpoints require a valid JWT for authentication (exceptions are noted below, such as the health check if configured as public).
 
 | Method | Path                        | Description                                    |
 | :----- | :-------------------------- | :--------------------------------------------- |
