@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     if settings.debug:
         print(f"Starting {settings.app_name} v{settings.app_version}")
         print(f"Environment: {settings.environment}")
-        print(f"Frontend URL: {settings.frontend_url}")
+        print(f"CORS Origins: {settings.cors_origins}")
 
     yield
 
@@ -40,19 +40,24 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Configure CORS
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=[settings.frontend_url] + settings.allowed_origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    # Middleware is executed in LIFO order (last added runs first)
+    # We want: Request -> CORS -> RateLimit -> Route Handler
+    # So we add RateLimit first, then CORS
 
-    # Add rate limiting middleware
+    # Add rate limiting middleware (runs AFTER CORS due to LIFO)
     from app.middleware.rate_limit import RateLimitMiddleware
 
     app.add_middleware(RateLimitMiddleware)
+
+    # Configure CORS (runs FIRST due to LIFO - handles OPTIONS preflight)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "Retry-After"],
+    )
 
     # Register API routers
     from app.api.v1 import health, tags, tasks

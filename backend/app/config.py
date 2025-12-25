@@ -43,8 +43,18 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 30
 
     # CORS
+    # Primary frontend URL (set via FRONTEND_URL env var in production)
     frontend_url: str = "http://localhost:3000"
-    allowed_origins: list[str] = ["http://localhost:3000"]
+    # Additional allowed origins (comma-separated in env: ALLOWED_ORIGINS)
+    allowed_origins: list[str] = []
+
+    @property
+    def cors_origins(self) -> list[str]:
+        """Get all unique CORS origins including frontend_url."""
+        origins = {self.frontend_url}
+        origins.update(self.allowed_origins)
+        # Remove any empty strings
+        return [o for o in origins if o]
 
     # Rate Limiting
     rate_limit_requests_per_minute: int = 100
