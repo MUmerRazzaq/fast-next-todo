@@ -62,8 +62,8 @@ class Settings(BaseSettings):
         """Get all unique CORS origins including frontend_url."""
         origins = {self.frontend_url}
         origins.update(self.allowed_origins)
-        # Remove any empty strings
-        return [o for o in origins if o]
+        # Remove any empty strings and return a deterministic ordering
+        return sorted([o for o in origins if o])
 
     # Rate Limiting
     rate_limit_requests_per_minute: int = 100
