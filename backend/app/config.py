@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,7 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
+        env_nested_delimiter=None,
     )
 
     # Application
@@ -47,6 +49,13 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"
     # Additional allowed origins (comma-separated in env: ALLOWED_ORIGINS)
     allowed_origins: list[str] = []
+
+    @field_validator('allowed_origins', mode='before')
+    @classmethod
+    def parse_allowed_origins(cls, v: str) -> list[str]:
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(',') if origin.strip()]
+        return v
 
     @property
     def cors_origins(self) -> list[str]:
