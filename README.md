@@ -108,7 +108,7 @@ The authentication flow is designed to be secure and stateless from the backend'
 ## 5. Authentication & Security
 
 - **Sign-in / Sign-up Flow**: Users sign up and sign in through dedicated forms. `better-auth` handles the initial authentication and session management within the Next.js application.
-- **JWT Token Usage**: After a successful login, the frontend requests a short-lived (1 hour) JSON Web Token (JWT) from its own backend (`/api/auth/token`). This JWT is then used for all subsequent requests to the FastAPI backend.
+- **JWT Token Usage**: After a successful login, the frontend requests a short-lived (configurable, 30 minutes by default) JSON Web Token (JWT) from its own backend (`/api/auth/token`). This JWT is then used for all subsequent requests to the FastAPI backend.
 - **Authorization Header**: The JWT must be included in the `Authorization` header of all requests to protected API endpoints.
     - **Format**: `Authorization: Bearer <your_jwt_token>`
 - **Token Expiration**: The JWT is configured to expire, requiring the client to re-authenticate or refresh the token.
